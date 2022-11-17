@@ -1,0 +1,22 @@
+--sobrescribir el test x con el test y
+Select * from test 
+update tnum set x=Y
+
+-- Numero de test or curos
+
+Select * test
+group by curso
+select COUNT( distinct tnun) from test
+
+--determinar los test con falencias
+
+
+Select * from preg
+Select * from pregalt
+where encunciado=''
+or pnum[0]=´´
+or (pnum+1)-pnum>1
+or max(alt)<=1
+or texto='verdadero'
+or texto='falso'
+Select count(distinct tnum) from pregalt
