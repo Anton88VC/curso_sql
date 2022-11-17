@@ -1,4 +1,6 @@
--SUBCONSULTAS
+use programbi_nov
+
+--SUBCONSULTAS
 
 select * from ventas
 
@@ -12,16 +14,40 @@ select year(fecha) from ventas
 
 select month(fecha)+year(fecha) from ventas
 
-select subconsulta.mes_yr, sum(subconsulta.cantidad), 
-sum(subconsulta.ventas_total), sum(subconsulta.costos_total)
-from (
-    select concat(month(fecha),year(fecha)) as mes_yr, 
-    cantidad, 
-    ventas*cantidad as ventas_total, 
-    costos*cantidad as costos_total 
-    from ventas
+--concat: une dos cadenas de caracteres
+select concat(month(fecha),year(fecha)) as mes_yr, cantidad, ventas, costos from ventas
+
+select subconsulta.mes_yr, sum(subconsulta.cantidad) as total_cant, sum(subconsulta.ventas) as total_monto,
+sum(subconsulta.costos) as total_costos
+from ( 
+
+    select concat(month(fecha),'-',year(fecha)) as mes_yr, cantidad, ventas, costos from ventas
 ) as subconsulta
 group by subconsulta.mes_yr
+
+create view reporte1 AS
+select subconsulta.mes_yr, sum(subconsulta.cantidad) as total_cant, sum(subconsulta.ventas) as total_monto,
+sum(subconsulta.costos) as total_costos
+from ( 
+
+    select concat(month(fecha),'-',year(fecha)) as mes_yr, cantidad, ventas, costos from ventas
+) as subconsulta
+group by subconsulta.mes_yr
+
+select subconsulta.mes_yr, sum(subconsulta.cantidad) as total_cant, sum(subconsulta.ventas) as total_monto,
+sum(subconsulta.costos) as total_costos
+into #reporte1_temp
+from ( 
+
+    select concat(month(fecha),'-',year(fecha)) as mes_yr, cantidad, ventas, costos from ventas
+) as subconsulta
+group by subconsulta.mes_yr
+
+select * from #reporte1_temp
+insert into #reporte1_temp values('9-2019',0,0,0)
+update #reporte1_temp set total_cant=2000 where mes_yr='9-2019'
+delete from #reporte1_temp where mes_yr='9-2019'
+
 
 --subconsulta en Where
 --tabla salarios
@@ -89,12 +115,15 @@ select * from T4
 
 --sintaxis : FROM tabla1 <comando de cruce> tabla2 <ON> tabla1.pivote = tabla2.pivote
 
-Select T1.ID, T1.NAME, T2.NAME
+Select T1.id, T2.id, T2.NAME
 FROM T1 INNER JOIN T2 on t1.id=t2.id
 
 SELECT *
 FROM T1 LEFT JOIN T2 ON T1.id=T2.ID
 
+SELECT *
+FROM T1 LEFT JOIN T2 ON T1.id=T2.ID
+UNION ALL
 SELECT *
 FROM T1 RIGHT JOIN T2 ON T1.id=T2.ID
 
@@ -103,10 +132,22 @@ Select *
 From T1 full join T2
 on T1.ID = T2.ID
 
+
+
+
 --Union de queries : ambas tablas deben tener los mismos campos!
 Select * from T1 
-UNION
+UNION ALL
 select * from T2
+
+--ejemplo: quitar duplicados de union
+select distinct subq.* FROM
+(
+Select * from T1 
+UNION ALL
+select * from T2
+) as subq
+
 --UNion con duplicado
 Select * from T1 
 UNION ALL
@@ -245,7 +286,6 @@ select * from arrienda
 
 select rut_a, sum(deuda) as deuda_total
 from arrienda
-where deuda>0
 group by rut_a
 
 --Muestre a los arrendatarios con deuda mayor a 100000
@@ -256,8 +296,8 @@ select *
 from (
 select rut_a, sum(deuda) as deuda_total
 from arrienda
-where deuda>0
-group by rut_a) as subconsulta 
+group by rut_a
+) as subconsulta 
 where subconsulta.deuda_total > 100000
 
 --Cantidad de casas por comunas
@@ -275,8 +315,5 @@ select * from arrienda
 
 select rut_d, sum(deuda) as monto_adeudado
 from arrienda
-where deuda>0
 group by rut_d
 order by monto_adeudado desc
-
-
